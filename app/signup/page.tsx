@@ -1,5 +1,5 @@
 "use client"
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function Signup(){
@@ -13,12 +13,20 @@ export default function Signup(){
 
     const handleSubmit = async(e : React.FormEvent<HTMLFormElement>)=>{
         e.preventDefault();
-        await fetch("/api/auth/signup" , {
+        const res = await fetch("/api/auth/signup" , {
             method : "POST", 
-            body : JSON.stringify(form)
+            body : JSON.stringify(form),
+            headers: {
+              "Content-Type": "application/json",
+            },
         })
-
-        router.push("/signin");
+        if (res.ok) {
+          router.push("/signin");
+        } else {
+          const error = await res.json();
+          console.error("Signup failed:", error);
+          // You could show an error message to the user here
+        }
     }
 
     return (

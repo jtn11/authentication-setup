@@ -2,21 +2,39 @@ import { users } from "@/app/lib/db";
 import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 
-export async function POST(req : Request) {
+export async function POST(req: Request) {
+  try {
+    const { name, email, password } = await req.json();
 
-    const {name , email , password} = await req.json();
-    
-    const userExists = users.find((user)=> user.email === email);
-    if(userExists){
-        return NextResponse.json({message : "user already exist"} ,{status : 400})
+    if (!name || !email || !password) {
+      return NextResponse.json(
+        { message: "All fields are required" },
+        { status: 400 }
+      );
     }
-    const hashpassword = await bcrypt.hash(password , 10);
-    users.push({
-        id : users.length + 1 ,
-        name , 
-        email , 
-        password : hashpassword
-    }) ;
 
-    return NextResponse.json({message : "user created successfully"}); 
+    const userExists = users.find((user) => user.email === email);
+    if (userExists) {
+      return NextResponse.json(
+        { message: "User already exists" },
+        { status: 400 }
+      );
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    users.push({
+      id: users.length + 1,
+      name,
+      email,
+      password: hashedPassword,
+    });
+
+    return NextResponse.json({ message: "User created successfully" });
+  } catch (error) {
+    return NextResponse.json(
+      { message: "Invalid request" },
+      { status: 500 }
+    );
+  }
 }
